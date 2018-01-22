@@ -23,9 +23,18 @@
 #ifndef ULTRALCD_H
 #define ULTRALCD_H
 
-#include "Marlin.h"
+#include "MarlinConfig.h"
 
 #if ENABLED(ULTRA_LCD)
+
+  #include "Marlin.h"
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+    extern bool lcd_external_control;
+    #if ENABLED(G26_MESH_VALIDATION)
+      void lcd_chirp();
+    #endif
+  #endif
 
   #define BUTTON_EXISTS(BN) (defined(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN) !READ(BTN_## BN)
@@ -50,7 +59,7 @@
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
   #if HAS_BUZZER
-    void lcd_buzz(long duration, uint16_t freq);
+    void lcd_buzz(const long duration, const uint16_t freq);
   #endif
 
   #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
@@ -62,8 +71,8 @@
   #endif
 
   #if ENABLED(DOGLCD)
-    extern uint16_t lcd_contrast;
-    void set_lcd_contrast(const uint16_t value);
+    extern int16_t lcd_contrast;
+    void set_lcd_contrast(const int16_t value);
   #endif
 
   #if ENABLED(SHOW_BOOTSCREEN)
@@ -86,11 +95,13 @@
 
     extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
     void lcd_buttons_update();
-    void lcd_quick_feedback();        // Audible feedback for a button click - could also be visual
+    void lcd_quick_feedback(const bool clear_buttons); // Audible feedback for a button click - could also be visual
     void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      void lcd_advanced_pause_show_message(const AdvancedPauseMessage message);
+      void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
+                                           const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
+                                           const uint8_t extruder=active_extruder);
     #endif // ADVANCED_PAUSE_FEATURE
 
   #else
@@ -129,20 +140,19 @@
 
     #define REPRAPWORLD_KEYPAD_MOVE_Z_DOWN  (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F3)
     #define REPRAPWORLD_KEYPAD_MOVE_Z_UP    (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F2)
-    #define REPRAPWORLD_KEYPAD_MOVE_MENU    (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F1)
     #define REPRAPWORLD_KEYPAD_MOVE_Y_DOWN  (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
     #define REPRAPWORLD_KEYPAD_MOVE_X_RIGHT (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_RIGHT)
-    #define REPRAPWORLD_KEYPAD_MOVE_HOME    (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_MIDDLE)
     #define REPRAPWORLD_KEYPAD_MOVE_Y_UP    (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_UP)
     #define REPRAPWORLD_KEYPAD_MOVE_X_LEFT  (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_LEFT)
 
     #if ENABLED(ADC_KEYPAD)
-      #define REPRAPWORLD_KEYPAD_MOVE_HOME  (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F1)
-      #define KEYPAD_EN_C                   EN_REPRAPWORLD_KEYPAD_MIDDLE
+      #define KEYPAD_HOME EN_REPRAPWORLD_KEYPAD_F1
+      #define KEYPAD_EN_C EN_REPRAPWORLD_KEYPAD_MIDDLE
     #else
-      #define REPRAPWORLD_KEYPAD_MOVE_HOME  (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_MIDDLE)
-      #define KEYPAD_EN_C                   EN_REPRAPWORLD_KEYPAD_F1
+      #define KEYPAD_HOME EN_REPRAPWORLD_KEYPAD_MIDDLE
+      #define KEYPAD_EN_C EN_REPRAPWORLD_KEYPAD_F1
     #endif
+    #define REPRAPWORLD_KEYPAD_MOVE_HOME    (buttons_reprapworld_keypad & KEYPAD_HOME)
     #define REPRAPWORLD_KEYPAD_MOVE_MENU    (buttons_reprapworld_keypad & KEYPAD_EN_C)
 
     #if BUTTON_EXISTS(ENC)
@@ -166,6 +176,11 @@
     #define LCD_CLICKED (buttons & EN_C)
   #else
     #define LCD_CLICKED false
+  #endif
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+    bool is_lcd_clicked();
+    void wait_for_release();
   #endif
 
   #if ENABLED(LCD_SET_PROGRESS_MANUALLY) && (ENABLED(LCD_PROGRESS_BAR) || ENABLED(DOGLCD))
@@ -194,15 +209,18 @@
 void lcd_reset_status();
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
-  extern bool ubl_lcd_map_control;
-  void lcd_mesh_edit_setup(float initial);
+  void lcd_mesh_edit_setup(const float initial);
   float lcd_mesh_edit();
   void lcd_z_offset_edit_setup(float);
   float lcd_z_offset_edit();
 #endif
 
-#if ENABLED(DELTA_CALIBRATION_MENU)
-  float lcd_probe_pt(const float &lx, const float &ly);
+#if ENABLED(DELTA_AUTO_CALIBRATION) && !HAS_BED_PROBE
+  float lcd_probe_pt(const float &rx, const float &ry);
+#endif
+
+#if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
+  void lcd_reselect_last_file();
 #endif
 
 #endif // ULTRALCD_H
