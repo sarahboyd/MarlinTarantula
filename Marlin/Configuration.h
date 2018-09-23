@@ -172,7 +172,7 @@ e - 384.95
  * Fan Soft PWM. Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
  * which is not as annoying as with the hardware PWM. Redo PID Autotune.
  */
-//#define SOFT_PWM
+#define SOFT_PWM
 
 /**
  * Enable this to provide a realtime control over the head position via the LCD menu system that works while printing.
@@ -180,7 +180,7 @@ e - 384.95
  *
  * Warning: Does not respect endstops!
  */
-//#define BABYSTEPPING
+#define BABYSTEPPING
 
 /**
  * Extra movement of X axis. Can help with probing more of the bed.
