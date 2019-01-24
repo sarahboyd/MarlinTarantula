@@ -1,3 +1,6 @@
+This branch includes configuration settings from Jan 2018 and Marlin updates from Jan 2019
+
+
 ============================================================================
 
 __Configured for MY Tevo Tarantula. It works for me, it may not work for you!__
