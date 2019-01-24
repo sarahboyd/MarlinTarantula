@@ -1,3 +1,5 @@
+This branch is from updates made in Jan 2018
+
 ============================================================================
 
 __Configured for MY Tevo Tarantula. It works for me, it may not work for you!__
